@@ -922,21 +922,32 @@ let copyPasteViolations = 0;
 const maxCopyPaste = 3;
 
 // Detect copy attempts
+// Customized copy-paste detection - only inside #editordiv
+let copyPasteViolations = 0;
+const maxCopyPaste = 3;
+
+function isInCodeEditor(event) {
+    return event.target.closest('#editordiv') !== null;
+}
+
 document.addEventListener('copy', function(e) {
-    copyPasteViolations++;
-    console.log('🚨 Copy detected! Count:', copyPasteViolations);
-    
-    // Show warning
-    if (typeof window.addMessage === 'function') {
-        window.addMessage('system', `🚨 Copy detected! Warning ${copyPasteViolations}/${maxCopyPaste}`);
-    }
-    
-    showCopyPasteModal('Copy', copyPasteViolations);
-    
-    if (copyPasteViolations >= maxCopyPaste) {
-        terminateForCopyPaste();
+    if (isInCodeEditor(e)) {
+        copyPasteViolations++;
+        console.log('Copy detected inside editor! Count', copyPasteViolations);
+        showWarningMessage('Copy detected in editor!', copyPasteViolations, maxCopyPaste);
+        if (copyPasteViolations >= maxCopyPaste) terminateInterviewForCopyPaste();
     }
 });
+
+document.addEventListener('paste', function(e) {
+    if (isInCodeEditor(e)) {
+        copyPasteViolations++;
+        console.log('Paste detected inside editor! Count', copyPasteViolations);
+        showWarningMessage('Paste detected in editor!', copyPasteViolations, maxCopyPaste);
+        if (copyPasteViolations >= maxCopyPaste) terminateInterviewForCopyPaste();
+    }
+});
+
 
 // Detect paste attempts  
 document.addEventListener('paste', function(e) {
@@ -1237,6 +1248,5 @@ console.log('✅ Copy/Paste Anti-Cheat loaded');
     <script src="/static/ai-proctoring.js"></script>
 </body>
 </html>
-
 
 
